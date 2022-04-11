@@ -1,17 +1,9 @@
 use amethyst::{
-    assets::{AssetLoaderSystemData},
-    
+    assets::AssetLoaderSystemData,
     core::Transform,
-    ecs::{Component, DenseVecStorage, Join, Read, ReadStorage, System, WriteStorage},
-    input::{InputHandler, StringBindings},
+    ecs::{Component, DenseVecStorage},
     prelude::*,
-    renderer::{
-        loaders::*,
-        palette::LinSrgba,
-        rendy::mesh::{Normal, Position, Tangent, TexCoord},
-        shape::Shape,
-        Material, MaterialDefaults, Mesh, Texture, ImageFormat,
-    },
+    renderer::{formats::mesh::ObjFormat, ImageFormat, Material, MaterialDefaults, Mesh, Texture},
 };
 
 #[derive(Clone, Copy)]
@@ -32,21 +24,10 @@ impl Component for Block {
 }
 
 pub fn initialize_block(world: &mut World, blocks: &Vec<Block>) {
-
-    let mesh = world.exec(|loader: AssetLoaderSystemData<'_, Mesh>| {
-        loader.load_from_data(
-            Shape::Cube
-                .generate::<(Vec<Position>, Vec<Normal>, Vec<Tangent>, Vec<TexCoord>)>(Some((
-                    0.5, 0.5, 0.5,
-                )))
-                .into(),
-            (),
-        )
-    });
+    let mesh = world
+        .exec(|loader: AssetLoaderSystemData<'_, Mesh>| loader.load("cube.obj", ObjFormat, ()));
     let texture = world.exec(|loader: AssetLoaderSystemData<'_, Texture>| {
-        loader.load("grasstop.png", ImageFormat::default(),
-            (),
-        )
+        loader.load("grasstop.png", ImageFormat::default(), ())
     });
 
     let mat_default = world.read_resource::<MaterialDefaults>().0.clone();

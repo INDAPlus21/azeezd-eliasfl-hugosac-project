@@ -1,0 +1,8 @@
+(
+    graphics: (
+        mesh: Shape((shape: Cube(0.5, 0.5, 0.5))),
+        material: (
+            albedo: File("grasstop.png", ("IMAGE", (channel: Srgb))),
+        ),
+    )
+)

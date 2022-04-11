@@ -6,7 +6,7 @@ use amethyst::{
     renderer::{bundle::RenderingBundle, types::DefaultBackend, RenderFlat3D, RenderToWindow},
     core::transform::TransformBundle,
     start_logger,
-    utils::application_root_dir,
+    utils::application_root_dir, input::{InputBundle, StringBindings},
 };
 
 fn main() -> amethyst::Result<()> {
@@ -23,7 +23,8 @@ fn main() -> amethyst::Result<()> {
                     RenderToWindow::from_config_path(disp)?
                         .with_clear([0.2, 0.5, 1.0, 1.0]))
                 .with_plugin(RenderFlat3D::default()))?
-        .with_bundle(TransformBundle::new())?;
+        .with_bundle(TransformBundle::new())?
+        .with_bundle(InputBundle::<StringBindings>::new())?;
 
     let mut game = Application::new(assets, game::InGame, game_data)?;
     game.run();

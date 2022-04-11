@@ -27,7 +27,7 @@ pub fn initialize_block(world: &mut World, blocks: &Vec<Block>) {
     let mesh = world
         .exec(|loader: AssetLoaderSystemData<'_, Mesh>| loader.load("cube.obj", ObjFormat, ()));
     let texture = world.exec(|loader: AssetLoaderSystemData<'_, Texture>| {
-        loader.load("grasstop.png", ImageFormat::default(), ())
+        loader.load("grass.png", ImageFormat::default(), ())
     });
 
     let mat_default = world.read_resource::<MaterialDefaults>().0.clone();

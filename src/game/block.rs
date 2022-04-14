@@ -23,9 +23,10 @@ impl Component for Block {
     type Storage = DenseVecStorage<Self>;
 }
 
-pub fn initialize_block(world: &mut World, blocks: &Vec<Block>) {
+pub fn initialize_blocks(world: &mut World, blocks: &Vec<Block>) {
     let mesh = world
         .exec(|loader: AssetLoaderSystemData<'_, Mesh>| loader.load("cube.obj", ObjFormat, ()));
+
     let texture = world.exec(|loader: AssetLoaderSystemData<'_, Texture>| {
         loader.load("grass.png", ImageFormat::default(), ())
     });

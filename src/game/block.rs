@@ -6,11 +6,13 @@ use amethyst::{
     renderer::{formats::mesh::ObjFormat, ImageFormat, Material, MaterialDefaults, Mesh, Texture},
 };
 
+pub const BLOCK_SIZE_FROM_CENTER: f32 = 0.5; // Defined from mesh in cube.obj
+
 #[derive(Clone, Copy)]
 pub struct Block {
-    x: f32,
-    y: f32,
-    z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl Block {

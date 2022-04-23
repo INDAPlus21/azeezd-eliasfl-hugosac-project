@@ -24,7 +24,8 @@ fn main() -> amethyst::Result<()> {
                         .with_clear([0.2, 0.5, 1.0, 1.0]))
                 .with_plugin(RenderFlat3D::default()))?
         .with_bundle(TransformBundle::new())?
-        .with_bundle(InputBundle::<StringBindings>::new())?;
+        .with_bundle(InputBundle::<StringBindings>::new())?
+        .with(game::Gravity, "gravity", &[]);
 
     let mut game = Application::new(assets, game::InGame, game_data)?;
     game.run();

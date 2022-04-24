@@ -7,6 +7,8 @@ use amethyst::{
 };
 
 const GRAVITY: f32 = -10.;
+const HALF_GRAVITY: f32 = GRAVITY / 2.0;
+const TERMINAL_VELOCITY: f32 = -50.0;
 
 use super::{Block, Player, BLOCK_SIZE_FROM_CENTER};
 
@@ -23,22 +25,29 @@ impl<'s> System<'s> for Gravity {
 
     fn run(&mut self, (blocks, mut players, mut locals, time): Self::SystemData) {
         for (player, local) in (&mut players, &mut locals).join() {
-            let mut step = GRAVITY * time.delta_seconds(); // TODO: Δs = g/2*Δt^2 + v*Δt
+            let dt = time.delta_seconds();
+            let v = player.y_velocity;
+
+            let mut dy = v*dt + HALF_GRAVITY*dt*dt; // dy = v dt + g dt^2 
+            let mut v_new = (v + GRAVITY * dt).max(TERMINAL_VELOCITY); // v = v0 + g dt
 
             for block in (&blocks).join() {
-                if player.y - player.height + step < block.y
+                if player.y - player.height + dy < block.y
+                    && player.y >= block.y + BLOCK_SIZE_FROM_CENTER
                     && player.x <= block.x + BLOCK_SIZE_FROM_CENTER
                     && player.x >= block.x - BLOCK_SIZE_FROM_CENTER
                     && player.z <= block.z + BLOCK_SIZE_FROM_CENTER
                     && player.z >= block.z - BLOCK_SIZE_FROM_CENTER
                 {
-                    step = 0.0;
+                    dy = 0.0;
+                    v_new = 0.0;
                     break;
                 }
             }
 
-            local.prepend_translation_y(step);
-            player.y += step;
+            local.prepend_translation_y(dy);
+            player.y += dy;
+            player.y_velocity = v_new;
         }
     }
 }

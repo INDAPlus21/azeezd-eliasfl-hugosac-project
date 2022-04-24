@@ -12,6 +12,7 @@ pub struct Player {
     pub x: f32,
     pub y: f32,
     pub z: f32,
+    pub y_velocity: f32
 }
 
 impl Player {
@@ -22,6 +23,7 @@ impl Player {
             x,
             y,
             z,
+            y_velocity: 0.
         }
     }
 }
@@ -33,7 +35,7 @@ impl Component for Player {
 pub fn init_player(
     world: &mut World,
     height: f32,
-    base_square_size: f32,
+    half_square_side: f32,
     x: f32,
     y: f32,
     z: f32,
@@ -41,7 +43,7 @@ pub fn init_player(
 ) {
     let mut transform = Transform::default();
     transform.set_translation_xyz(x, y, z);
-    transform.set_rotation_x_axis(-3.14 / 2.0);
+    transform.set_rotation_x_axis(-3.14 / 3.0);
 
     world
         .create_entity()
@@ -50,6 +52,6 @@ pub fn init_player(
             camera_dimensions.height(),
         ))
         .with(transform)
-        .with(Player::new(height, base_square_size, x, y, z))
+        .with(Player::new(height, half_square_side, x, y, z))
         .build();
 }

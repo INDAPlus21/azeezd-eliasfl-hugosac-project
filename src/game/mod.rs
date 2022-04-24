@@ -23,7 +23,7 @@ impl SimpleState for InGame {
         let dimensions = (*world.read_resource::<ScreenDimensions>()).clone();
 
         init_light(world);
-        init_player(world, 1.5, 0.5, 0., 20., 0.5, &dimensions);
+        init_player(world, 1.5, 0.5, 0., 20., 0., &dimensions);
 
         initialize_blocks(world, &{
             let mut blocks: Vec<Block> = Vec::with_capacity(400);

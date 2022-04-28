@@ -1,6 +1,7 @@
 use amethyst::{
     core::Transform,
     ecs::{Component, DenseVecStorage},
+    controls::{FlyControlTag},
     prelude::*,
     renderer::Camera,
     window::ScreenDimensions,
@@ -52,6 +53,7 @@ pub fn init_player(
             camera_dimensions.height(),
         ))
         .with(transform)
+        .with(FlyControlTag)
         .with(Player::new(height, half_square_side, x, y, z))
         .build();
 }

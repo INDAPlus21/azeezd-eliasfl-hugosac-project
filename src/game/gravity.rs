@@ -3,7 +3,7 @@ use amethyst::{
     core::transform::Transform,
     core::SystemDesc,
     derive::SystemDesc,
-    ecs::{Join, Read, ReadStorage, System, SystemData, World, WriteStorage},
+    ecs::{Join, Read, ReadStorage, System, SystemData, World, WriteStorage}, input::{InputHandler, StringBindings},
 };
 
 const GRAVITY: f32 = -10.;
@@ -33,11 +33,11 @@ impl<'s> System<'s> for Gravity {
 
             for block in (&blocks).join() {
                 if player.y - player.height + dy < block.y
-                    && player.y >= block.y + BLOCK_SIZE_FROM_CENTER
-                    && player.x <= block.x + BLOCK_SIZE_FROM_CENTER
-                    && player.x >= block.x - BLOCK_SIZE_FROM_CENTER
-                    && player.z <= block.z + BLOCK_SIZE_FROM_CENTER
-                    && player.z >= block.z - BLOCK_SIZE_FROM_CENTER
+                    && player.y > block.y + BLOCK_SIZE_FROM_CENTER
+                    && player.x < block.x + BLOCK_SIZE_FROM_CENTER
+                    && player.x > block.x - BLOCK_SIZE_FROM_CENTER
+                    && player.z < block.z + BLOCK_SIZE_FROM_CENTER
+                    && player.z > block.z - BLOCK_SIZE_FROM_CENTER
                 {
                     dy = 0.0;
                     v_new = 0.0;
@@ -46,7 +46,11 @@ impl<'s> System<'s> for Gravity {
             }
 
             local.prepend_translation_y(dy);
-            player.y += dy;
+            let trans = local.translation();
+        
+            player.x = trans.data[0];
+            player.y = trans.data[1];
+            player.z = trans.data[2];
             player.y_velocity = v_new;
         }
     }

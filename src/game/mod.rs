@@ -29,7 +29,7 @@ impl SimpleState for InGame {
             let mut blocks: Vec<Block> = Vec::with_capacity(400);
             for i in -10..10 {
                 for j in -10..10 {
-                    blocks.push(Block::new(2.0 * i as f32, 0.0, 2.0 * j as f32));
+                    blocks.push(Block::new(i as f32, 0.0, j as f32));
                 }
             }
 

@@ -1,11 +1,14 @@
 extern crate amethyst;
 use amethyst::{
+    controls::HideCursor,
     core::Transform,
+    input::{is_key_down, is_mouse_button_down, VirtualKeyCode},
     prelude::*,
     renderer::light::{Light, PointLight},
     renderer::palette::rgb::Rgb,
     renderer::Camera,
     window::ScreenDimensions,
+    winit::MouseButton,
     SimpleState,
 };
 
@@ -33,6 +36,26 @@ impl SimpleState for InGame {
             }
             blocks
         });
+    }
+
+    fn handle_event(
+        &mut self,
+        data: StateData<'_, GameData<'_, '_>>,
+        event: StateEvent,
+    ) -> SimpleTrans {
+        let StateData { world, .. } = data;
+        if let StateEvent::Window(event) = &event {
+            if is_key_down(&event, VirtualKeyCode::Escape) {
+                let mut hide_cursor = world.write_resource::<HideCursor>();
+                hide_cursor.hide = false;
+            } else if is_mouse_button_down(&event, MouseButton::Left) {
+                let mut hide_cursor = world.write_resource::<HideCursor>();
+                hide_cursor.hide = true;
+            } else if is_key_down(&event, VirtualKeyCode::Space) {
+                println!("Pressed spacebar")
+            }
+        }
+        Trans::None
     }
 }
 

@@ -25,20 +25,22 @@ impl SimpleState for InGame {
         let dimensions = (*world.read_resource::<ScreenDimensions>()).clone();
 
         init_light(world);
-        init_player(world, 2., 0.5, 0., 20., 0., &dimensions);
+        init_player(world, 0., 5., 0., 2., 2.0, &dimensions);
+        
 
         initialize_blocks(world, &{
             let mut blocks: Vec<Block> = Vec::with_capacity(10_000);
             let perlin = Perlin::new();
-            let map_size = 100.0;
+            let map_size = 128.;
+            let chunk_size = 256;
 
             let mut rng = rand::thread_rng();
 
             // Random frequency in the range [1, 4)
             let freq = rng.gen::<f64>() * 3.0 + 1.0;
 
-            for x in -(map_size as isize / 2)..(map_size as isize / 2) {
-                for z in -(map_size as isize / 2)..(map_size as isize / 2) {
+            for x in -(chunk_size/ 2)..(chunk_size/ 2) {
+                for z in -(chunk_size/ 2)..(chunk_size/ 2) {
                     let nx = (x as f32 / map_size - 1.0) as f64;
                     let nz = (z as f32 / map_size - 1.0) as f64;
                     // 3 octaves of Perlin noise

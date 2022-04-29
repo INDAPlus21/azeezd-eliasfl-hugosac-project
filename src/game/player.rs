@@ -10,20 +10,14 @@ use amethyst::{
 pub struct Player {
     pub height: f32,
     pub base_square_size: f32,
-    pub x: f32,
-    pub y: f32,
-    pub z: f32,
     pub y_velocity: f32
 }
 
 impl Player {
-    pub fn new(height: f32, base_square_size: f32, x: f32, y: f32, z: f32) -> Self {
+    pub fn new(height: f32, base_square_size: f32) -> Self {
         Self {
             height,
             base_square_size,
-            x,
-            y,
-            z,
             y_velocity: 0.
         }
     }
@@ -35,11 +29,9 @@ impl Component for Player {
 
 pub fn init_player(
     world: &mut World,
+    x: f32, y:f32, z:f32,
     height: f32,
     half_square_side: f32,
-    x: f32,
-    y: f32,
-    z: f32,
     camera_dimensions: &ScreenDimensions,
 ) {
     let mut transform = Transform::default();
@@ -54,6 +46,6 @@ pub fn init_player(
         ))
         .with(transform)
         .with(FlyControlTag)
-        .with(Player::new(height, half_square_side, x, y, z))
+        .with(Player::new(height, half_square_side))
         .build();
 }

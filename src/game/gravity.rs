@@ -27,17 +27,18 @@ impl<'s> System<'s> for Gravity {
         for (player, local) in (&mut players, &mut locals).join() {
             let dt = time.delta_seconds();
             let v = player.y_velocity;
+            let trans = local.translation();
 
             let mut dy = v*dt + HALF_GRAVITY*dt*dt; // dy = v dt + g dt^2 
             let mut v_new = (v + GRAVITY * dt).max(TERMINAL_VELOCITY); // v = v0 + g dt
 
             for block in (&blocks).join() {
-                if player.y - player.height + dy < block.y
-                    && player.y > block.y + BLOCK_SIZE_FROM_CENTER
-                    && player.x < block.x + BLOCK_SIZE_FROM_CENTER
-                    && player.x > block.x - BLOCK_SIZE_FROM_CENTER
-                    && player.z < block.z + BLOCK_SIZE_FROM_CENTER
-                    && player.z > block.z - BLOCK_SIZE_FROM_CENTER
+                if trans[1] - player.height + dy < block.y
+                    && trans[1] > block.y + BLOCK_SIZE_FROM_CENTER
+                    && trans[0] < block.x + BLOCK_SIZE_FROM_CENTER
+                    && trans[0] > block.x - BLOCK_SIZE_FROM_CENTER
+                    && trans[2] < block.z + BLOCK_SIZE_FROM_CENTER
+                    && trans[2] > block.z - BLOCK_SIZE_FROM_CENTER
                 {
                     dy = 0.0;
                     v_new = 0.0;
@@ -46,11 +47,7 @@ impl<'s> System<'s> for Gravity {
             }
 
             local.prepend_translation_y(dy);
-            let trans = local.translation();
-        
-            player.x = trans.data[0];
-            player.y = trans.data[1];
-            player.z = trans.data[2];
+            
             player.y_velocity = v_new;
         }
     }

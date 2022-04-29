@@ -1,10 +1,13 @@
 extern crate amethyst;
 use amethyst::{
+    controls::HideCursor,
     core::Transform,
+    input::{is_key_down, is_mouse_button_down, VirtualKeyCode},
     prelude::*,
     renderer::light::{Light, PointLight},
     renderer::palette::rgb::Rgb,
     window::ScreenDimensions,
+    winit::MouseButton,
     SimpleState,
 };
 use noise::{NoiseFn, Perlin};
@@ -26,7 +29,6 @@ impl SimpleState for InGame {
 
         init_light(world);
         init_player(world, 0., 5., 0., 2., 2.0, &dimensions);
-        
 
         initialize_blocks(world, &{
             let mut blocks: Vec<Block> = Vec::with_capacity(10_000);
@@ -39,8 +41,8 @@ impl SimpleState for InGame {
             // Random frequency in the range [1, 4)
             let freq = rng.gen::<f64>() * 3.0 + 1.0;
 
-            for x in -(chunk_size/ 2)..(chunk_size/ 2) {
-                for z in -(chunk_size/ 2)..(chunk_size/ 2) {
+            for x in -(chunk_size / 2)..(chunk_size / 2) {
+                for z in -(chunk_size / 2)..(chunk_size / 2) {
                     let nx = (x as f32 / map_size - 1.0) as f64;
                     let nz = (z as f32 / map_size - 1.0) as f64;
                     // 3 octaves of Perlin noise
@@ -57,6 +59,26 @@ impl SimpleState for InGame {
 
             blocks
         });
+    }
+
+    fn handle_event(
+        &mut self,
+        data: StateData<'_, GameData<'_, '_>>,
+        event: StateEvent,
+    ) -> SimpleTrans {
+        let StateData { world, .. } = data;
+        if let StateEvent::Window(event) = &event {
+            if is_key_down(&event, VirtualKeyCode::Escape) {
+                let mut hide_cursor = world.write_resource::<HideCursor>();
+                hide_cursor.hide = false;
+            } else if is_mouse_button_down(&event, MouseButton::Left) {
+                let mut hide_cursor = world.write_resource::<HideCursor>();
+                hide_cursor.hide = true;
+            } else if is_key_down(&event, VirtualKeyCode::Space) {
+                // println!("Pressed spacebar")
+            }
+        }
+        Trans::None
     }
 }
 

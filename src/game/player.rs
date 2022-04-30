@@ -1,7 +1,6 @@
 use amethyst::{
     core::Transform,
     ecs::{Component, DenseVecStorage},
-    controls::{FlyControlTag, FreeRotationSystem},
     prelude::*,
     renderer::Camera,
     window::ScreenDimensions,
@@ -11,7 +10,8 @@ pub struct Player {
     pub height: f32,
     pub base_square_size: f32,
     pub y_velocity: f32,
-    pub vert_rotation: f32
+    pub can_jump: bool,
+    pub vert_rotation: f32,
 }
 
 impl Player {
@@ -20,7 +20,8 @@ impl Player {
             height,
             base_square_size,
             y_velocity: 0.,
-            vert_rotation: 0.
+            can_jump: true,
+            vert_rotation: 0.,
         }
     }
 }
@@ -31,7 +32,9 @@ impl Component for Player {
 
 pub fn init_player(
     world: &mut World,
-    x: f32, y:f32, z:f32,
+    x: f32,
+    y: f32,
+    z: f32,
     height: f32,
     half_square_side: f32,
     camera_dimensions: &ScreenDimensions,

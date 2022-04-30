@@ -1,23 +1,23 @@
 use amethyst::{
-    core::timing::Time,
     core::transform::Transform,
+    core::SystemDesc,
     derive::SystemDesc,
-    ecs::{Join, Read, ReadStorage, System, SystemData, World, WriteStorage}, input::{InputHandler, StringBindings}, shrev::{EventChannel, ReaderId},
-    winit::{Event, DeviceEvent},
-    core::SystemDesc
+    ecs::{Join, Read, System, SystemData, World, WriteStorage},
+    shrev::{EventChannel, ReaderId},
+    winit::{DeviceEvent, Event},
 };
 
 use std::f32::consts::FRAC_PI_2;
 
 use derive_new::new as New;
 
-use crate::game::{Player};
+use crate::game::Player;
 
 #[derive(SystemDesc, New)]
 #[system_desc(name(RotationSystemDesc))]
 pub struct RotationSystem {
     #[system_desc(event_channel_reader)]
-    reader: ReaderId<Event>
+    reader: ReaderId<Event>,
 }
 
 impl<'a> System<'a> for RotationSystem {
@@ -30,14 +30,22 @@ impl<'a> System<'a> for RotationSystem {
     fn run(&mut self, (mut players, mut transform, events): Self::SystemData) {
         for (player, local) in (&mut players, &mut transform).join() {
             for event in events.read(&mut self.reader) {
-                if let Event::DeviceEvent {event: DeviceEvent::MouseMotion { delta: (x, y) }, .. } = *event {
+                if let Event::DeviceEvent {
+                    event: DeviceEvent::MouseMotion { delta: (x, y) },
+                    ..
+                } = *event
+                {
                     let theta = player.vert_rotation;
 
                     let dy = -(y as f32 * 0.1).to_radians();
-                    let dy = if theta + dy < FRAC_PI_2 && theta + dy > -FRAC_PI_2 {dy} else {0.};
+                    let dy = if theta + dy < FRAC_PI_2 && theta + dy > -FRAC_PI_2 {
+                        dy
+                    } else {
+                        0.
+                    };
 
                     let dx = -(x as f32 * 0.1).to_radians();
-                    
+
                     player.vert_rotation += dy;
                     local.append_rotation_x_axis(dy);
                     local.prepend_rotation_y_axis(dx);

@@ -8,7 +8,6 @@ use amethyst::{
     renderer::palette::rgb::Rgb,
     window::ScreenDimensions,
     SimpleState,
-    winit::{Event, DeviceEvent}
 };
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
@@ -17,7 +16,6 @@ mod block;
 pub use block::{initialize_blocks, Block, BLOCK_SIZE_FROM_CENTER};
 
 pub mod movement;
-
 
 mod player;
 pub use player::*;

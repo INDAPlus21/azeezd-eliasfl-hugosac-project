@@ -9,3 +9,4 @@ edition = "2021"
 amethyst = {version = "0.15.3", features = ["vulkan"]}
 noise = "0.7.0"
 rand = "0.8.5"
+derive-new = "0.5.9"

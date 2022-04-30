@@ -2,21 +2,23 @@ extern crate amethyst;
 use amethyst::{
     controls::HideCursor,
     core::Transform,
-    input::{is_key_down, is_mouse_button_down, VirtualKeyCode},
+    input::{is_key_down, VirtualKeyCode},
     prelude::*,
     renderer::light::{Light, PointLight},
     renderer::palette::rgb::Rgb,
     window::ScreenDimensions,
-    winit::MouseButton,
     SimpleState,
+    winit::{Event, DeviceEvent}
 };
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
 
 mod block;
 pub use block::{initialize_blocks, Block, BLOCK_SIZE_FROM_CENTER};
-mod gravity;
-pub use gravity::*;
+
+pub mod movement;
+
+
 mod player;
 pub use player::*;
 
@@ -70,12 +72,7 @@ impl SimpleState for InGame {
         if let StateEvent::Window(event) = &event {
             if is_key_down(&event, VirtualKeyCode::Escape) {
                 let mut hide_cursor = world.write_resource::<HideCursor>();
-                hide_cursor.hide = false;
-            } else if is_mouse_button_down(&event, MouseButton::Left) {
-                let mut hide_cursor = world.write_resource::<HideCursor>();
-                hide_cursor.hide = true;
-            } else if is_key_down(&event, VirtualKeyCode::Space) {
-                // println!("Pressed spacebar")
+                hide_cursor.hide = !hide_cursor.hide;
             }
         }
         Trans::None

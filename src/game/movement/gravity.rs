@@ -10,7 +10,7 @@ const GRAVITY: f32 = -10.;
 const HALF_GRAVITY: f32 = GRAVITY / 2.0;
 const TERMINAL_VELOCITY: f32 = -50.0;
 
-use super::{Block, Player, BLOCK_SIZE_FROM_CENTER};
+use crate::game::{Block, Player, BLOCK_SIZE_FROM_CENTER};
 
 #[derive(SystemDesc)]
 pub struct Gravity;

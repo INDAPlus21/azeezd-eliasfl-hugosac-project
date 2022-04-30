@@ -7,7 +7,7 @@ use amethyst::{
     core::transform::TransformBundle,
     start_logger,
     utils::application_root_dir, input::{InputBundle, StringBindings},
-    controls::FlyControlBundle
+    controls::FlyControlBundle, controls::FreeRotationSystem
 };
 
 fn main() -> amethyst::Result<()> {
@@ -18,7 +18,7 @@ fn main() -> amethyst::Result<()> {
     let input = root.join("config/input.ron");
     let assets = root.join("assets");
     let input_bundle = InputBundle::<StringBindings>::new().with_bindings_from_file(input)?;
-
+    
     let game_data = GameDataBuilder::default()
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
@@ -28,7 +28,7 @@ fn main() -> amethyst::Result<()> {
                 .with_plugin(RenderFlat3D::default()))?
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
-        .with(game::Gravity, "gravity", &[])
+        .with_bundle(game::movement::MovementBundle)?
         .with_bundle(
             FlyControlBundle::<StringBindings>::new(
             Some("move_x".into()),

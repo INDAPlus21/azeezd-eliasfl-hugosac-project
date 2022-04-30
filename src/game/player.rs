@@ -1,7 +1,7 @@
 use amethyst::{
     core::Transform,
     ecs::{Component, DenseVecStorage},
-    controls::{FlyControlTag},
+    controls::{FlyControlTag, FreeRotationSystem},
     prelude::*,
     renderer::Camera,
     window::ScreenDimensions,
@@ -10,7 +10,8 @@ use amethyst::{
 pub struct Player {
     pub height: f32,
     pub base_square_size: f32,
-    pub y_velocity: f32
+    pub y_velocity: f32,
+    pub vert_rotation: f32
 }
 
 impl Player {
@@ -18,7 +19,8 @@ impl Player {
         Self {
             height,
             base_square_size,
-            y_velocity: 0.
+            y_velocity: 0.,
+            vert_rotation: 0.
         }
     }
 }
@@ -36,7 +38,6 @@ pub fn init_player(
 ) {
     let mut transform = Transform::default();
     transform.set_translation_xyz(x, y, z);
-    transform.set_rotation_x_axis(-3.14 / 3.0);
 
     world
         .create_entity()
@@ -45,7 +46,6 @@ pub fn init_player(
             camera_dimensions.height(),
         ))
         .with(transform)
-        .with(FlyControlTag)
         .with(Player::new(height, half_square_side))
         .build();
 }

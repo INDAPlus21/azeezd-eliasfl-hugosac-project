@@ -8,17 +8,17 @@ use amethyst::{
 
 pub struct Player {
     pub height: f32,
-    pub base_square_size: f32,
+    pub half_base_size: f32,
     pub y_velocity: f32,
     pub can_jump: bool,
     pub vert_rotation: f32,
 }
 
 impl Player {
-    pub fn new(height: f32, base_square_size: f32) -> Self {
+    pub fn new(height: f32, half_base_size: f32) -> Self {
         Self {
             height,
-            base_square_size,
+            half_base_size,
             y_velocity: 0.,
             can_jump: true,
             vert_rotation: 0.,

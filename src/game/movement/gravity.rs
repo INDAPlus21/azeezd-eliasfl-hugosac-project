@@ -33,11 +33,11 @@ impl<'s> System<'s> for Gravity {
             player.can_jump = false;
             for block in (&blocks).join() {
                 if trans[1] - player.height + dy < block.y
-                    && trans[1] > block.y + BLOCK_SIZE_FROM_CENTER
-                    && trans[0] < block.x + BLOCK_SIZE_FROM_CENTER
-                    && trans[0] > block.x - BLOCK_SIZE_FROM_CENTER
-                    && trans[2] < block.z + BLOCK_SIZE_FROM_CENTER
-                    && trans[2] > block.z - BLOCK_SIZE_FROM_CENTER
+                && trans[1] > block.y + BLOCK_SIZE_FROM_CENTER
+                && trans[0] - player.half_base_size < block.x + BLOCK_SIZE_FROM_CENTER
+                && trans[0] + player.half_base_size> block.x - BLOCK_SIZE_FROM_CENTER
+                && trans[2] - player.half_base_size< block.z + BLOCK_SIZE_FROM_CENTER
+                && trans[2] + player.half_base_size> block.z - BLOCK_SIZE_FROM_CENTER
                 {
                     dy = 0.0;
                     v_new = 0.0;

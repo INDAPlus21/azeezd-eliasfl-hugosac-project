@@ -2,6 +2,7 @@ extern crate amethyst;
 mod game;
 
 use amethyst::{
+    controls::{CursorHideSystemDesc, FreeRotationSystemDesc, MouseFocusUpdateSystemDesc},
     core::transform::TransformBundle,
     input::{InputBundle, StringBindings},
     prelude::*,
@@ -15,11 +16,28 @@ fn main() -> amethyst::Result<()> {
 
     let root = application_root_dir()?;
     let disp = root.join("config/display.ron");
-    let input = root.join("config/input.ron");
+    let key_bindings_path = root.join("config/input.ron");
     let assets = root.join("assets");
-    let input_bundle = InputBundle::<StringBindings>::new().with_bindings_from_file(input)?;
+    let input_bundle = InputBundle::<StringBindings>::new().with_bindings_from_file(key_bindings_path)?;
 
+    let sensitivity_x = 1.0;
+    let sensitivity_y = 1.0;
     let game_data = GameDataBuilder::default()
+        .with_system_desc(
+            FreeRotationSystemDesc::new(sensitivity_x, sensitivity_y),
+            "free_rotation",
+            &[],
+        )
+        .with_system_desc(
+            MouseFocusUpdateSystemDesc::default(),
+            "mouse_focus",
+            &["free_rotation"],
+        )
+        .with_system_desc(
+            CursorHideSystemDesc::default(),
+            "cursor_hide",
+            &["mouse_focus"],
+        )
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
                 .with_plugin(

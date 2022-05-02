@@ -1,4 +1,5 @@
 use amethyst::{
+    controls::{HideCursor, WindowFocus},
     core::transform::Transform,
     core::SystemDesc,
     derive::SystemDesc,
@@ -25,30 +26,34 @@ impl<'a> System<'a> for RotationSystem {
         WriteStorage<'a, Player>,
         WriteStorage<'a, Transform>,
         Read<'a, EventChannel<Event>>,
+        Read<'a, WindowFocus>,
+        Read<'a, HideCursor>,
     );
 
-    fn run(&mut self, (mut players, mut transform, events): Self::SystemData) {
+    fn run(&mut self, (mut players, mut transform, events, focus, hide): Self::SystemData) {
         for (player, local) in (&mut players, &mut transform).join() {
             for event in events.read(&mut self.reader) {
-                if let Event::DeviceEvent {
-                    event: DeviceEvent::MouseMotion { delta: (x, y) },
-                    ..
-                } = *event
-                {
-                    let theta = player.vert_rotation;
+                if focus.is_focused && hide.hide {
+                    if let Event::DeviceEvent {
+                        event: DeviceEvent::MouseMotion { delta: (x, y) },
+                        ..
+                    } = *event
+                    {
+                        let theta = player.vert_rotation;
 
-                    let dy = -(y as f32 * 0.1).to_radians();
-                    let dy = if theta + dy < FRAC_PI_2 && theta + dy > -FRAC_PI_2 {
-                        dy
-                    } else {
-                        0.
-                    };
+                        let dy = -(y as f32 * 0.1).to_radians();
+                        let dy = if theta + dy < FRAC_PI_2 && theta + dy > -FRAC_PI_2 {
+                            dy
+                        } else {
+                            0.
+                        };
 
-                    let dx = -(x as f32 * 0.1).to_radians();
+                        let dx = -(x as f32 * 0.1).to_radians();
 
-                    player.vert_rotation += dy;
-                    local.append_rotation_x_axis(dy);
-                    local.prepend_rotation_y_axis(dx);
+                        player.vert_rotation += dy;
+                        local.append_rotation_x_axis(dy);
+                        local.prepend_rotation_y_axis(dx);
+                    }
                 }
             }
         }

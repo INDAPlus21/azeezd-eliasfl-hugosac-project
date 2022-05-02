@@ -6,7 +6,8 @@ use amethyst::{
     input::{InputHandler, StringBindings},
 };
 
-use crate::game::{Block, Player, BLOCK_SIZE_FROM_CENTER};
+use super::CollisionHandler;
+use crate::game::{Block, Player};
 
 use std::f32::consts::FRAC_1_SQRT_2;
 
@@ -40,8 +41,8 @@ impl<'s> System<'s> for MovementSystem {
             };
 
             let mut transf = local.clone();
-            let pos = local.translation();
-            
+            let current = local.translation();
+
             // Find matrix of new position
             transf.append_rotation_x_axis(-player.vert_rotation);
             if let Some(movement) = x_mov {
@@ -53,19 +54,20 @@ impl<'s> System<'s> for MovementSystem {
             transf.append_rotation_x_axis(player.vert_rotation);
 
             let mut delta: [f32; 3] = (transf.translation() - local.translation()).into();
-            let new_pos = [pos[0] + delta[0], pos[1] + delta[1], pos[2] + delta[2]];
+            let transf = transf.translation();
 
             for block in (&blocks).join() {
-                if new_pos[0] - player.half_base_size < block.x + BLOCK_SIZE_FROM_CENTER
-                && new_pos[0] + player.half_base_size > block.x - BLOCK_SIZE_FROM_CENTER
-                && new_pos[2] - player.half_base_size < block.z + BLOCK_SIZE_FROM_CENTER
-                && new_pos[2] + player.half_base_size > block.z - BLOCK_SIZE_FROM_CENTER
-                && new_pos[1] - player.height > block.y - 2. * BLOCK_SIZE_FROM_CENTER // collision at player's legs' height
-                && new_pos[1] - player.height < block.y
-                {
-                    // TODO: Find direction of collision and elimiate it for more realistic collisions
-                    delta[0] = 0.;
-                    delta[2] = 0.;
+                let collision = CollisionHandler::new(
+                    [current[0], current[1], current[2]],
+                    [transf[0], transf[1], transf[2]],
+                    block.as_array(),
+                );
+
+                if collision.x_collision {
+                    delta[0] = 0.0
+                }
+                if collision.z_collision {
+                    delta[2] = 0.0
                 }
             }
 

@@ -19,6 +19,10 @@ impl Block {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Block { x, y, z }
     }
+
+    pub fn as_array(&self) -> [f32; 3] {
+        [self.x, self.y, self.z]
+    }
 }
 
 impl Component for Block {

@@ -8,7 +8,7 @@ use amethyst::{
 const GRAVITY: f32 = -10.;
 const TERMINAL_VELOCITY: f32 = -50.0;
 
-use crate::game::{Block, Player, BLOCK_SIZE_FROM_CENTER};
+use crate::game::{Block, Player, BLOCK_SIZE_FROM_CENTER, HEIGHT, PLAYER_SIZE_FROM_CENTER};
 
 #[derive(SystemDesc)]
 pub struct Gravity;
@@ -32,12 +32,12 @@ impl<'s> System<'s> for Gravity {
 
             player.can_jump = false;
             for block in (&blocks).join() {
-                if trans[1] - player.height + dy < block.y
+                if trans[1] - HEIGHT + dy < block.y
                 && trans[1] > block.y + BLOCK_SIZE_FROM_CENTER
-                && trans[0] - player.half_base_size < block.x + BLOCK_SIZE_FROM_CENTER
-                && trans[0] + player.half_base_size> block.x - BLOCK_SIZE_FROM_CENTER
-                && trans[2] - player.half_base_size< block.z + BLOCK_SIZE_FROM_CENTER
-                && trans[2] + player.half_base_size> block.z - BLOCK_SIZE_FROM_CENTER
+                && trans[0] - PLAYER_SIZE_FROM_CENTER < block.x + BLOCK_SIZE_FROM_CENTER
+                && trans[0] + PLAYER_SIZE_FROM_CENTER > block.x - BLOCK_SIZE_FROM_CENTER
+                && trans[2] - PLAYER_SIZE_FROM_CENTER < block.z + BLOCK_SIZE_FROM_CENTER
+                && trans[2] + PLAYER_SIZE_FROM_CENTER > block.z - BLOCK_SIZE_FROM_CENTER
                 {
                     dy = 0.0;
                     v_new = 0.0;

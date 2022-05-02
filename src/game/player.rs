@@ -6,19 +6,18 @@ use amethyst::{
     window::ScreenDimensions,
 };
 
+pub const HEIGHT: f32 = 2.0;
+pub const PLAYER_SIZE_FROM_CENTER: f32 = 0.4;
+
 pub struct Player {
-    pub height: f32,
-    pub half_base_size: f32,
     pub y_velocity: f32,
     pub can_jump: bool,
     pub vert_rotation: f32,
 }
 
 impl Player {
-    pub fn new(height: f32, half_base_size: f32) -> Self {
+    pub fn new() -> Self {
         Self {
-            height,
-            half_base_size,
             y_velocity: 0.,
             can_jump: true,
             vert_rotation: 0.,
@@ -35,8 +34,6 @@ pub fn init_player(
     x: f32,
     y: f32,
     z: f32,
-    height: f32,
-    half_square_side: f32,
     camera_dimensions: &ScreenDimensions,
 ) {
     let mut transform = Transform::default();
@@ -49,6 +46,6 @@ pub fn init_player(
             camera_dimensions.height(),
         ))
         .with(transform)
-        .with(Player::new(height, half_square_side))
+        .with(Player::new())
         .build();
 }

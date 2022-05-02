@@ -13,7 +13,7 @@ use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
 
 mod block;
-pub use block::{initialize_blocks, Block, BLOCK_SIZE_FROM_CENTER};
+pub use block::*;
 
 pub mod movement;
 
@@ -28,7 +28,7 @@ impl SimpleState for InGame {
         let dimensions = (*world.read_resource::<ScreenDimensions>()).clone();
 
         init_light(world);
-        init_player(world, 0., 5., 0., 2., 0.4, &dimensions);
+        init_player(world, 0., 5., 0., &dimensions);
 
         initialize_blocks(world, &{
             let mut blocks: Vec<Block> = Vec::with_capacity(10_000);

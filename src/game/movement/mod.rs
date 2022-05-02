@@ -12,6 +12,9 @@ pub use gravity::*;
 mod rotation;
 pub use rotation::*;
 
+mod collision_handler;
+pub use collision_handler::*;
+
 pub(crate) struct MovementBundle;
 
 impl<'a, 'b> SystemBundle<'a, 'b> for MovementBundle {

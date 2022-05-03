@@ -1,16 +1,24 @@
 extern crate amethyst;
 use amethyst::{
+    controls::HideCursor,
     core::Transform,
+    input::{is_key_down, VirtualKeyCode},
     prelude::*,
     renderer::light::{Light, PointLight},
     renderer::palette::rgb::Rgb,
-    renderer::Camera,
     window::ScreenDimensions,
     SimpleState,
 };
+use noise::{NoiseFn, Perlin};
+use rand::prelude::*;
 
 mod block;
-pub use block::{initialize_blocks, Block};
+pub use block::*;
+
+pub mod movement;
+
+mod player;
+pub use player::*;
 
 pub struct InGame;
 
@@ -19,33 +27,54 @@ impl SimpleState for InGame {
         let world = _data.world;
         let dimensions = (*world.read_resource::<ScreenDimensions>()).clone();
 
-        world.register::<Block>(); // To be removed after we add a system for the blocks
-
         init_light(world);
-        init_camera(world, &dimensions);
+        init_player(world, 0., 5., 0., &dimensions);
 
         initialize_blocks(world, &{
-            let mut blocks: Vec<Block> = Vec::with_capacity(400);
-            for i in -10..10 {
-                for j in -10..10 {
-                    blocks.push(Block::new(2.0 * i as f32, 5.0, 2.0 * j as f32));
+            let mut blocks: Vec<Block> = Vec::with_capacity(10_000);
+            let perlin = Perlin::new();
+            let map_size = 128.;
+            let chunk_size = 256;
+
+            let mut rng = rand::thread_rng();
+
+            // Random frequency in the range [1, 4)
+            let freq = rng.gen::<f64>() * 3.0 + 1.0;
+
+            for x in -(chunk_size / 2)..(chunk_size / 2) {
+                for z in -(chunk_size / 2)..(chunk_size / 2) {
+                    let nx = (x as f32 / map_size - 1.0) as f64;
+                    let nz = (z as f32 / map_size - 1.0) as f64;
+                    // 3 octaves of Perlin noise
+                    let y = (18.0
+                        * (perlin.get([nx, nz])
+                            + 0.5 * perlin.get([freq * nx, freq * nz])
+                            + 0.25 * perlin.get([2.0 * freq * nx, 2.0 * freq * nz]))
+                        / (1.0 + 0.5 + 0.25))
+                        .round();
+
+                    blocks.push(Block::new(x as f32, y as f32, z as f32));
                 }
             }
+
             blocks
         });
     }
-}
 
-fn init_camera(world: &mut World, dimensions: &ScreenDimensions) {
-    let mut transform = Transform::default();
-    transform.set_translation_xyz(0., 10., 20.);
-    transform.append_rotation_x_axis(-3.14 / 6.0);
-
-    world
-        .create_entity()
-        .with(Camera::standard_3d(dimensions.width(), dimensions.height()))
-        .with(transform)
-        .build();
+    fn handle_event(
+        &mut self,
+        data: StateData<'_, GameData<'_, '_>>,
+        event: StateEvent,
+    ) -> SimpleTrans {
+        let StateData { world, .. } = data;
+        if let StateEvent::Window(event) = &event {
+            if is_key_down(&event, VirtualKeyCode::Escape) {
+                let mut hide_cursor = world.write_resource::<HideCursor>();
+                hide_cursor.hide = !hide_cursor.hide;
+            }
+        }
+        Trans::None
+    }
 }
 
 fn init_light(world: &mut World) {

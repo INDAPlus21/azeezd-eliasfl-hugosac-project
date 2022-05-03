@@ -5,6 +5,8 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies.amethyst]
-version = "0.15.3"
-features = ["vulkan"]
+[dependencies]
+amethyst = {version = "0.15.3", features = ["vulkan"]}
+noise = "0.7.0"
+rand = "0.8.5"
+derive-new = "0.5.9"

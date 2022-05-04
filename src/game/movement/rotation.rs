@@ -1,7 +1,6 @@
 use amethyst::{
     controls::{HideCursor, WindowFocus},
     core::transform::Transform,
-    core::SystemDesc,
     derive::SystemDesc,
     ecs::{Join, Read, System, SystemData, WriteStorage},
     shrev::{EventChannel, ReaderId},

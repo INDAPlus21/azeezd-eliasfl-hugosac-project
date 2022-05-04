@@ -20,6 +20,9 @@ pub mod movement;
 mod player;
 pub use player::*;
 
+mod block_changing;
+pub use block_changing::*;
+
 pub struct InGame;
 
 impl SimpleState for InGame {

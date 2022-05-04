@@ -18,7 +18,8 @@ fn main() -> amethyst::Result<()> {
     let disp = root.join("config/display.ron");
     let key_bindings_path = root.join("config/input.ron");
     let assets = root.join("assets");
-    let input_bundle = InputBundle::<StringBindings>::new().with_bindings_from_file(key_bindings_path)?;
+    let input_bundle =
+        InputBundle::<StringBindings>::new().with_bindings_from_file(key_bindings_path)?;
 
     let sensitivity_x = 1.0;
     let sensitivity_y = 1.0;
@@ -47,7 +48,8 @@ fn main() -> amethyst::Result<()> {
         )?
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
-        .with_bundle(game::movement::MovementBundle)?;
+        .with_bundle(game::movement::MovementBundle)?
+        .with(game::MouseRaycastSystem, "mouse_raycast", &[]);
 
     let mut game = Application::new(assets, game::InGame, game_data)?;
     game.run();

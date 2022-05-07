@@ -45,7 +45,7 @@ fn get_mat(world: &mut World, file_name: &str, mat_default: Material) -> Handle<
         loader.load(format!("texture/{file_name}"), ImageFormat::default(), ())
     });
 
-    let mat_handle = world.exec(|loader: AssetLoaderSystemData<'_, Material>|{
+    let mat_handle = world.exec(|loader: AssetLoaderSystemData<'_, Material>| {
         loader.load_from_data(
             Material {
                 albedo: texture,

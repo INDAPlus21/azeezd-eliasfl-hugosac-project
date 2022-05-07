@@ -11,6 +11,8 @@ use crate::game::{Block, Player};
 
 use std::f32::consts::FRAC_1_SQRT_2;
 
+const GRAVITY: f32 = -10.;
+const TERMINAL_VELOCITY: f32 = -50.0;
 #[derive(SystemDesc)]
 pub struct MovementSystem {
     pub speed: f32,
@@ -51,11 +53,21 @@ impl<'s> System<'s> for MovementSystem {
             if let Some(movement) = z_mov {
                 transf.append_translation_xyz(0., 0., movement * dv);
             }
+            if let Some(movement) = y_mov {
+                if player.can_jump && movement > 0. {
+                    player.y_velocity += 5. * movement;
+                }
+            }
+            let v = player.y_velocity;
+            let dy = v * dt + GRAVITY * dt * dt; // dy = v dt + g dt^2
+            let mut v_new = (v + GRAVITY * dt).max(TERMINAL_VELOCITY); // v = v0 + g dt
+            transf.append_translation_xyz(0.0, dy, 0.0);
             transf.append_rotation_x_axis(player.vert_rotation);
 
             let mut delta: [f32; 3] = (transf.translation() - local.translation()).into();
             let transf = transf.translation();
 
+            player.can_jump = false;
             for block in (&blocks).join() {
                 let collision = CollisionHandler::new(
                     [current[0], current[1], current[2]],
@@ -69,17 +81,22 @@ impl<'s> System<'s> for MovementSystem {
                 if collision.z_collision {
                     delta[2] = 0.0
                 }
+                if collision.y_collision {
+                    if delta[1] <= 0. {
+                        player.can_jump = true;
+                        delta[1] = 0.0;
+                        v_new = 0.0;
+                    } else {
+                        delta[1] -= delta[1];
+                        v_new = 0.0;
+                    }
+                }
             }
 
             local.prepend_translation_x(delta[0]);
             local.prepend_translation_y(delta[1]);
             local.prepend_translation_z(delta[2]);
-
-            if let Some(movement) = y_mov {
-                if player.can_jump {
-                    player.y_velocity += 5. * movement;
-                }
-            }
+            player.y_velocity = v_new;
         }
     }
 }

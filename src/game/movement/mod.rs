@@ -6,9 +6,6 @@ use amethyst::{
 mod movement;
 pub use movement::*;
 
-mod gravity;
-pub use gravity::*;
-
 mod rotation;
 pub use rotation::*;
 

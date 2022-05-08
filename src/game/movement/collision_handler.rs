@@ -1,4 +1,4 @@
-use crate::game::{BLOCK_SIZE_FROM_CENTER, HEIGHT, PLAYER_SIZE_FROM_CENTER};
+use crate::game::{BLOCK_SIZE_FROM_CENTER, HEIGHT, PLAYER_SIZE_FROM_CENTER, HEAD_HEIGHT};
 
 pub struct CollisionHandler {
     pub x_collision: bool,
@@ -12,13 +12,13 @@ impl CollisionHandler {
         let x1 = current[0] - PLAYER_SIZE_FROM_CENTER < block[0] + BLOCK_SIZE_FROM_CENTER;
         let x2 = current[0] + PLAYER_SIZE_FROM_CENTER > block[0] - BLOCK_SIZE_FROM_CENTER;
         let y1 = block[1] + BLOCK_SIZE_FROM_CENTER > current[1] - HEIGHT + BLOCK_SIZE_FROM_CENTER;
-        let y2 = block[1] - BLOCK_SIZE_FROM_CENTER < current[1];
+        let y2 = block[1] - BLOCK_SIZE_FROM_CENTER < current[1] + HEAD_HEIGHT;
         let z1 = current[2] - PLAYER_SIZE_FROM_CENTER < block[2] + BLOCK_SIZE_FROM_CENTER;
         let z2 = current[2] + PLAYER_SIZE_FROM_CENTER > block[2] - BLOCK_SIZE_FROM_CENTER;
         let xn1 = new_pos[0] - PLAYER_SIZE_FROM_CENTER < block[0] + BLOCK_SIZE_FROM_CENTER;
         let xn2 = new_pos[0] + PLAYER_SIZE_FROM_CENTER > block[0] - BLOCK_SIZE_FROM_CENTER;
         let yn1 = block[1] + BLOCK_SIZE_FROM_CENTER > new_pos[1] - HEIGHT + BLOCK_SIZE_FROM_CENTER;
-        let yn2 = block[1] - BLOCK_SIZE_FROM_CENTER < new_pos[1];
+        let yn2 = block[1] - BLOCK_SIZE_FROM_CENTER < new_pos[1] + HEAD_HEIGHT;
         let zn1 = new_pos[2] - PLAYER_SIZE_FROM_CENTER < block[2] + BLOCK_SIZE_FROM_CENTER;
         let zn2 = new_pos[2] + PLAYER_SIZE_FROM_CENTER > block[2] - BLOCK_SIZE_FROM_CENTER;
         

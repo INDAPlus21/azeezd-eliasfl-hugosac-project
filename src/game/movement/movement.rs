@@ -29,6 +29,7 @@ impl<'s> System<'s> for MovementSystem {
 
     fn run(&mut self, (blocks, mut players, mut locals, time, input): Self::SystemData) {
         for (player, local) in (&mut players, &mut locals).join() {
+            // Get key pressed and direction
             let x_mov = input.axis_value("move_x");
             let y_mov = input.axis_value("move_y");
             let z_mov = input.axis_value("move_z");
@@ -58,16 +59,20 @@ impl<'s> System<'s> for MovementSystem {
                     player.y_velocity += 5. * movement;
                 }
             }
+            // Calculate gravity
             let v = player.y_velocity;
             let dy = v * dt + GRAVITY * dt * dt; // dy = v dt + g dt^2
             let mut v_new = (v + GRAVITY * dt).max(TERMINAL_VELOCITY); // v = v0 + g dt
             transf.append_translation_xyz(0.0, dy, 0.0);
             transf.append_rotation_x_axis(player.vert_rotation);
 
+            // Find change
             let mut delta: [f32; 3] = (transf.translation() - local.translation()).into();
             let transf = transf.translation();
 
             player.can_jump = false;
+
+            // Check collision with blocks
             for block in (&blocks).join() {
                 let collision = CollisionHandler::new(
                     [current[0], current[1], current[2]],
@@ -75,6 +80,7 @@ impl<'s> System<'s> for MovementSystem {
                     block.as_array(),
                 );
 
+                // Update the deltas based on collision in each axis
                 if collision.x_collision {
                     delta[0] = 0.0
                 }
@@ -82,17 +88,18 @@ impl<'s> System<'s> for MovementSystem {
                     delta[2] = 0.0
                 }
                 if collision.y_collision {
-                    if delta[1] <= 0. {
+                    if delta[1] <= 0. { // Colliding from top
                         player.can_jump = true;
                         delta[1] = 0.0;
                         v_new = 0.0;
-                    } else {
+                    } else { // Colliding from bottom
                         delta[1] -= delta[1];
                         v_new = 0.0;
                     }
                 }
             }
 
+            // Change position based on deltas
             local.prepend_translation_x(delta[0]);
             local.prepend_translation_y(delta[1]);
             local.prepend_translation_z(delta[2]);

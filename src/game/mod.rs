@@ -96,8 +96,8 @@ impl SimpleState for InGame {
                 }
             }
 
-            blocks.push(Block::new(0.0, 4.0, 0.0));
-            blocks.push(Block::new(0.0, 1.0, 0.0));
+            blocks.push(Block::new(0.0, 4.0, 0.0, BlockSurface::Dirt));
+            blocks.push(Block::new(0.0, 1.0, 0.0, BlockSurface::Dirt));
 
             blocks
         });

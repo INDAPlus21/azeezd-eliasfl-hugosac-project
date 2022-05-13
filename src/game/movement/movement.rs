@@ -11,6 +11,8 @@ use crate::game::{Block, Player};
 
 use std::f32::consts::FRAC_1_SQRT_2;
 
+const GRAVITY: f32 = -10.;
+const TERMINAL_VELOCITY: f32 = -50.0;
 #[derive(SystemDesc)]
 pub struct MovementSystem {
     pub speed: f32,
@@ -27,6 +29,7 @@ impl<'s> System<'s> for MovementSystem {
 
     fn run(&mut self, (blocks, mut players, mut locals, time, input): Self::SystemData) {
         for (player, local) in (&mut players, &mut locals).join() {
+            // Get key pressed and direction
             let x_mov = input.axis_value("move_x");
             let y_mov = input.axis_value("move_y");
             let z_mov = input.axis_value("move_z");
@@ -51,11 +54,25 @@ impl<'s> System<'s> for MovementSystem {
             if let Some(movement) = z_mov {
                 transf.append_translation_xyz(0., 0., movement * dv);
             }
+            if let Some(movement) = y_mov {
+                if player.can_jump && movement > 0. {
+                    player.y_velocity += 5. * movement;
+                }
+            }
+            // Calculate gravity
+            let v = player.y_velocity;
+            let dy = v * dt + GRAVITY * dt * dt; // dy = v dt + g dt^2
+            let mut v_new = (v + GRAVITY * dt).max(TERMINAL_VELOCITY); // v = v0 + g dt
+            transf.append_translation_xyz(0.0, dy, 0.0);
             transf.append_rotation_x_axis(player.vert_rotation);
 
+            // Find change
             let mut delta: [f32; 3] = (transf.translation() - local.translation()).into();
             let transf = transf.translation();
 
+            player.can_jump = false;
+
+            // Check collision with blocks
             for block in (&blocks).join() {
                 let collision = CollisionHandler::new(
                     [current[0], current[1], current[2]],
@@ -63,23 +80,30 @@ impl<'s> System<'s> for MovementSystem {
                     block.as_array(),
                 );
 
+                // Update the deltas based on collision in each axis
                 if collision.x_collision {
                     delta[0] = 0.0
                 }
                 if collision.z_collision {
                     delta[2] = 0.0
                 }
+                if collision.y_collision {
+                    if delta[1] <= 0. { // Colliding from top
+                        player.can_jump = true;
+                        delta[1] = 0.0;
+                        v_new = 0.0;
+                    } else { // Colliding from bottom
+                        delta[1] -= delta[1];
+                        v_new = 0.0;
+                    }
+                }
             }
 
+            // Change position based on deltas
             local.prepend_translation_x(delta[0]);
             local.prepend_translation_y(delta[1]);
             local.prepend_translation_z(delta[2]);
-
-            if let Some(movement) = y_mov {
-                if player.can_jump {
-                    player.y_velocity += 5. * movement;
-                }
-            }
+            player.y_velocity = v_new;
         }
     }
 }

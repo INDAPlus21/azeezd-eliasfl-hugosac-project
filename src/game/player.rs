@@ -6,7 +6,8 @@ use amethyst::{
     window::ScreenDimensions,
 };
 
-pub const HEIGHT: f32 = 2.0;
+pub const HEIGHT: f32 = 2.0; // From eyes to feet
+pub const HEAD_HEIGHT: f32 = 0.2; // From eyes to top of head
 pub const PLAYER_SIZE_FROM_CENTER: f32 = 0.4;
 
 pub struct Player {

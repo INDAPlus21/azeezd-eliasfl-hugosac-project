@@ -31,34 +31,73 @@ impl SimpleState for InGame {
         let dimensions = (*world.read_resource::<ScreenDimensions>()).clone();
 
         init_light(world);
-        init_player(world, 0., 5., 0., &dimensions);
+        init_player(world, 0., 9., 0., &dimensions);
 
         initialize_blocks(world, &{
-            let mut blocks: Vec<Block> = Vec::with_capacity(10_000);
+            let mut blocks: Vec<Block> = Vec::with_capacity(1_000_000);
             let perlin = Perlin::new();
             let map_size = 128.;
             let chunk_size = 256;
+            let min_height = -15;
+            let max_height = 15.0;
 
             let mut rng = rand::thread_rng();
 
-            // Random frequency in the range [1, 4)
-            let freq = rng.gen::<f64>() * 3.0 + 1.0;
+            // Random frequency in the range [7, 12)
+            let freq = rng.gen::<f64>() * 5.0 + 7.0;
 
+            // Iterate through x and z values of the map
             for x in -(chunk_size / 2)..(chunk_size / 2) {
                 for z in -(chunk_size / 2)..(chunk_size / 2) {
                     let nx = (x as f32 / map_size - 1.0) as f64;
                     let nz = (z as f32 / map_size - 1.0) as f64;
+                    
                     // 3 octaves of Perlin noise
-                    let y = (18.0
-                        * (perlin.get([nx, nz])
+                    let y = (
+                        max_height * (
+                            perlin.get([nx, nz])
                             + 0.5 * perlin.get([freq * nx, freq * nz])
-                            + 0.25 * perlin.get([2.0 * freq * nx, 2.0 * freq * nz]))
-                        / (1.0 + 0.5 + 0.25))
-                        .round();
+                            + 0.25 * perlin.get([2.0 * freq * nx, 2.0 * freq * nz])
+                        )/ (1.0 + 0.5 + 0.25)
+                    ).round();
 
-                    blocks.push(Block::new(x as f32, y as f32, z as f32));
+                    // Add top layer block
+                    if y > 6.0 {
+                        blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::Snow));
+                    } else if y > -8.0 {
+                        blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::Grass));
+                    } else if y > -10.0 {
+                        blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::Gravel));
+                    } else {
+                        // 50 % change of each type of stone
+                        if rand::random() {
+                            blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::StoneRough));
+                        } else {
+                            blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::StoneSmooth));
+                        }
+                    }
+
+                    // Add blocks below down to the minimum height.
+                    // The type of block that is added depends on the height.
+                    for i in min_height..y as isize {
+                        if i > -5 {
+                            blocks.push(Block::new(x as f32, i as f32, z as f32, BlockSurface::Dirt));
+                        } else if i > -8 {
+                            blocks.push(Block::new(x as f32, i as f32, z as f32, BlockSurface::Gravel));
+                        } else {
+                            // 50 % change of each type of stone
+                            if rand::random() {
+                                blocks.push(Block::new(x as f32, i as f32, z as f32, BlockSurface::StoneRough));
+                            } else {
+                                blocks.push(Block::new(x as f32, i as f32, z as f32, BlockSurface::StoneSmooth));
+                            }
+                        }
+                    }
                 }
             }
+
+            blocks.push(Block::new(0.0, 4.0, 0.0, BlockSurface::Dirt));
+            blocks.push(Block::new(0.0, 1.0, 0.0, BlockSurface::Dirt));
 
             blocks
         });

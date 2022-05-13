@@ -68,6 +68,7 @@ impl<'s> System<'s> for MouseRaycastSystem {
                             && collision_z.norm() < 5.0
                         {
                             println!("({}, {}, {})", block.x, block.y, block.z);
+                            break;
                             // println!(
                             //     "({} {}, {} {}, {} {})",
                             //     collision_x,

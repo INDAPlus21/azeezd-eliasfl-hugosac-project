@@ -1,11 +1,12 @@
 use amethyst::{
     core::{
-        geometry::Plane,
-        math::{Point2, Vector2, Vector3},
+        math::{Point2, Vector2},
         Transform,
     },
     derive::SystemDesc,
-    ecs::{Entities, Join, Read, ReadExpect, ReadStorage, System, SystemData, WriteStorage},
+    ecs::{
+        Entities, Entity, Join, Read, ReadExpect, ReadStorage, System, SystemData, WriteStorage,
+    },
     input::{InputHandler, StringBindings},
     renderer::{ActiveCamera, Camera},
     window::ScreenDimensions,
@@ -14,13 +15,16 @@ use amethyst::{
 
 use super::{Block, Player, BLOCK_SIZE_FROM_CENTER};
 
+/// How low the player can reach to break and replace blocks
+pub const PLAYER_REACH: f32 = 5.0;
+
 #[derive(SystemDesc)]
 pub struct MouseRaycastSystem;
 
 impl<'s> System<'s> for MouseRaycastSystem {
     type SystemData = (
         Entities<'s>,
-        WriteStorage<'s, Block>,
+        ReadStorage<'s, Block>,
         ReadStorage<'s, Player>,
         ReadStorage<'s, Transform>,
         ReadStorage<'s, Camera>,
@@ -31,7 +35,16 @@ impl<'s> System<'s> for MouseRaycastSystem {
 
     fn run(
         &mut self,
-        (entities, blocks, _players, locals, cameras, active_camera, screen_dimensions, input): Self::SystemData,
+        (
+            entities,
+            blocks,
+            _players,
+            locals,
+            cameras,
+            active_camera,
+            screen_dimensions,
+            input,
+        ): Self::SystemData,
     ) {
         // If left mouse is pressed
         if input.mouse_button_is_down(MouseButton::Left) {
@@ -51,45 +64,59 @@ impl<'s> System<'s> for MouseRaycastSystem {
                         Vector2::new(screen_dimensions.width(), screen_dimensions.height()),
                         camera_transform,
                     );
-                    for block in (&blocks).join() {
-                        let block_pos = Vector3::new(block.x, block.y, block.z);
-                        // distance from camera to block plane
-                        let distance_x = ray.intersect_plane(&Plane::with_x(block.x)).unwrap();
-                        let distance_y = ray.intersect_plane(&Plane::with_y(block.y)).unwrap();
-                        let distance_z = ray.intersect_plane(&Plane::with_z(block.z)).unwrap();
-                        let mut collision_x = ray.at_distance(distance_x).coords; // collision with x-plane for block
-                        let mut collision_y = ray.at_distance(distance_y).coords; // collision with y-plane for block
-                        let mut collision_z = ray.at_distance(distance_z).coords; // collision with z-plane for block
-                        collision_x -= block_pos; // new vector is distance to block center
-                        collision_y -= block_pos; // new vector is distance to block center
-                        collision_z -= block_pos; // new vector is distance to block center
-                        if collision_x.norm() < 5.0
-                            && collision_y.norm() < 5.0
-                            && collision_z.norm() < 5.0
-                        {
-                            println!("({}, {}, {})", block.x, block.y, block.z);
-                            break;
-                            // println!(
-                            //     "({} {}, {} {}, {} {})",
-                            //     collision_x,
-                            //     collision_x.norm(),
-                            //     collision_y,
-                            //     collision_y.norm(),
-                            //     collision_z,
-                            //     collision_z.norm()
-                            // );
+                    // Nearest block and distance from camera
+                    let mut nearest_block: Option<(&Block, f32, Entity)> = None;
+                    for (entity, block) in (&entities, &blocks).join() {
+                        // Raycasting using AABB (axis aligned bounding box)
+                        let min_x = block.x - BLOCK_SIZE_FROM_CENTER;
+                        let max_x = block.x + BLOCK_SIZE_FROM_CENTER;
+                        let min_y = block.y - BLOCK_SIZE_FROM_CENTER;
+                        let max_y = block.y + BLOCK_SIZE_FROM_CENTER;
+                        let min_z = block.z - BLOCK_SIZE_FROM_CENTER;
+                        let max_z = block.z + BLOCK_SIZE_FROM_CENTER;
+                        let t1 = (min_x - ray.origin.x) / ray.direction.x;
+                        let t2 = (max_x - ray.origin.x) / ray.direction.x;
+                        let t3 = (min_y - ray.origin.y) / ray.direction.y;
+                        let t4 = (max_y - ray.origin.y) / ray.direction.y;
+                        let t5 = (min_z - ray.origin.z) / ray.direction.z;
+                        let t6 = (max_z - ray.origin.z) / ray.direction.z;
+
+                        let tmin = f32::max(
+                            f32::max(f32::min(t1, t2), f32::min(t3, t4)),
+                            f32::min(t5, t6),
+                        );
+                        let tmax = f32::min(
+                            f32::min(f32::max(t1, t2), f32::max(t3, t4)),
+                            f32::max(t5, t6),
+                        );
+                        // if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behind us
+                        if tmax < 0.0 {
+                            continue;
                         }
 
-                        // if all distances is within block
-                        if [distance_x, distance_y, distance_z].iter().all(|&dist| {
-                            let mut block_point = Vector3::new(block.x, block.y, block.z);
-                            block_point -= ray.at_distance(dist).coords;
-                            // distance from intersection to block center
-                            return block_point.norm() < BLOCK_SIZE_FROM_CENTER;
-                        }) {
-                            // let mouse_world_position = ray.at_distance(distance);
-                            println!("({:.0}, {:.0}, {:.0})", block.x, block.y, block.z);
+                        // if tmin > tmax, ray doesn't intersect AABB
+                        if tmin > tmax {
+                            continue;
                         }
+
+                        let dist = if tmin < 0.0 { tmax } else { tmin };
+                        // if block is further away than a certain threshold
+                        if dist > PLAYER_REACH {
+                            continue;
+                        }
+
+                        if let Some((_, block_dist, _)) = nearest_block {
+                            if dist < block_dist {
+                                nearest_block = Some((block, dist, entity));
+                            }
+                        } else {
+                            nearest_block = Some((block, dist, entity));
+                        }
+                    }
+                    if let Some((block, dist, entity)) = nearest_block {
+                        println!("Distance: {}, Ray: {}", dist, ray.at_distance(dist));
+                        println!("({}, {}, {})", block.x, block.y, block.z);
+                        entities.delete(entity).unwrap();
                     }
                 }
             }

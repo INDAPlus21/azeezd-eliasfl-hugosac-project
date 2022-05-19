@@ -1,17 +1,16 @@
 use amethyst::{
     controls::{HideCursor, WindowFocus},
-    core::transform::Transform,
-    derive::SystemDesc,
     ecs::{Join, Read, System, SystemData, WriteStorage},
     shrev::{EventChannel, ReaderId},
     winit::{DeviceEvent, Event},
+    SystemDesc,
 };
 
 use std::f32::consts::FRAC_PI_2;
 
 use derive_new::new as New;
 
-use crate::game::Player;
+use crate::game::{Player, Transform};
 
 #[derive(SystemDesc, New)]
 #[system_desc(name(RotationSystemDesc))]

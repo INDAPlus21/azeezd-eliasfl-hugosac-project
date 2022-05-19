@@ -4,11 +4,12 @@ mod game;
 use amethyst::{
     controls::{CursorHideSystemDesc, FreeRotationSystemDesc, MouseFocusUpdateSystemDesc},
     core::transform::TransformBundle,
-    input::{InputBundle, StringBindings, InputHandler},
+    input::{InputBundle, StringBindings},
     prelude::*,
     renderer::{bundle::RenderingBundle, types::DefaultBackend, RenderFlat3D, RenderToWindow},
     start_logger,
-    utils::application_root_dir, ui::{RenderUi, UiBundle},
+    ui::{RenderUi, UiBundle},
+    utils::application_root_dir,
 };
 
 fn main() -> amethyst::Result<()> {

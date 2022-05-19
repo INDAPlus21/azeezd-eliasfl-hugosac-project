@@ -170,9 +170,11 @@ impl<'s> System<'s> for MouseRaycastSystem {
 
                             // If there is a material place the block
                             if let Some((material, surface)) = current_block {
-                                let mesh = meshes.get(entity).unwrap(); // Get mesh of nearest block (easy way to get block, maybe can be better)
+                                let mesh = meshes.get(entity).unwrap(); // Get mesh of nearest block (easy way to get block, could probably be better)
 
-                                let click_point = ray.at_distance(dist);
+                                // took a long time to debug:
+                                // fn at_distance returns origin - (direction * dist), fixed with negative dist
+                                let click_point = ray.at_distance(-dist);
                                 let mut block_point = Point3::new(block.x, block.y, block.z);
                                 let hit_direction: Vector3<f32> = click_point - block_point;
 
@@ -182,6 +184,9 @@ impl<'s> System<'s> for MouseRaycastSystem {
                                 let direction = hit_direction[index].signum();
                                 // placed block destination is 1 in corresponding direction
                                 block_point[index] += direction;
+                                // block_point is now placed block position
+
+                                // TODO: if block to be placed collides with player
 
                                 let mut transform = Transform::default();
                                 transform.append_translation_xyz(

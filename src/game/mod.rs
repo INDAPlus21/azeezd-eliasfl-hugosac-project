@@ -7,7 +7,7 @@ use amethyst::{
     renderer::light::{Light, PointLight},
     renderer::{palette::rgb::Rgb, Texture, ImageFormat},
     window::ScreenDimensions,
-    SimpleState, ui::{Anchor, UiTransform, UiText, UiImage}, assets::AssetLoaderSystemData,
+    SimpleState, ui::{Anchor, UiTransform, UiImage}, assets::AssetLoaderSystemData,
 };
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
@@ -23,8 +23,8 @@ pub use player::*;
 mod block_changing;
 pub use block_changing::*;
 
-mod block_ui;
-pub use block_ui::*;
+mod textual_ui;
+pub use textual_ui::*;
 
 pub struct InGame;
 
@@ -189,5 +189,5 @@ pub fn initialize_ui(world: &mut World) {
         .with(UiImage::Texture(material))
         .build();
 
-    initialize_block_ui(world);
+    initialize_textual_ui(world);
 }

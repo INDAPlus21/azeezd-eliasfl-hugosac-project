@@ -18,6 +18,19 @@ pub enum BlockSurface {
     Snow
 }
 
+impl ToString for BlockSurface {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Grass => {"Grass".to_string()},
+            Self::Dirt => {"Dirt".to_string()},
+            Self::Gravel => {"Gravel".to_string()},
+            Self::StoneRough => {"Rough Stone".to_string()},
+            Self::StoneSmooth => {"Smooth Stone".to_string()},
+            Self::Snow => {"Snow".to_string()}
+        }
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct Block {
     pub x: f32,

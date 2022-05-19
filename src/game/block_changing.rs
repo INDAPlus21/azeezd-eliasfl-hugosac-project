@@ -1,7 +1,7 @@
 use amethyst::{
-    assets::{Handle},
+    assets::Handle,
     core::{
-        math::{Point2, Vector2},
+        math::{Point2, Point3, Vector2, Vector3},
         Transform,
     },
     derive::SystemDesc,
@@ -17,7 +17,7 @@ use amethyst::{
 
 use super::{Block, Player, BLOCK_SIZE_FROM_CENTER};
 
-/// How low the player can reach to break and replace blocks
+/// How low the player can reach to break and place blocks
 pub const PLAYER_REACH: f32 = 5.0;
 
 #[derive(SystemDesc)]
@@ -116,15 +116,12 @@ impl<'s> System<'s> for MouseRaycastSystem {
                         if tmax < 0.0 {
                             continue;
                         }
-
                         // if tmin > tmax, ray doesn't intersect AABB
                         if tmin > tmax {
                             continue;
                         }
-
                         // t-value for ray to block collision point
                         let dist = if tmin < 0.0 { tmax } else { tmin };
-
                         // if block is further away than a certain threshold
                         if dist > PLAYER_REACH {
                             continue;
@@ -152,7 +149,8 @@ impl<'s> System<'s> for MouseRaycastSystem {
                     if let MouseButton::Middle = button {
                         if let Some((block, _, entity)) = nearest_block {
                             for player in (&mut players).join() {
-                                player.current_block = Some((materials.get(entity).unwrap().clone(), block.surface));
+                                player.current_block =
+                                    Some((materials.get(entity).unwrap().clone(), block.surface));
                             }
                         }
                     }
@@ -160,13 +158,7 @@ impl<'s> System<'s> for MouseRaycastSystem {
                     // If right mouse is pressed (place block)
                     if let MouseButton::Right = button {
                         // place block on top of
-                        if let Some((block, _dist, entity)) = nearest_block {
-                            let mut transform = Transform::default();
-                            transform.append_translation_xyz(block.x, block.y + 1.0, block.z);
-
-                            // Possible example for entity mesh: https://github.dev/amethyst/amethyst/blob/v0.15.3/amethyst_assets/examples/hl.rs
-                            // Another resource: https://community.amethyst.rs/t/runtime-based-meshes/610/3
-                            
+                        if let Some((block, dist, entity)) = nearest_block {
                             // Get material and surface stored in player (if they have picked one using middle click)
                             let current_block = {
                                 let mut block = None;
@@ -180,13 +172,31 @@ impl<'s> System<'s> for MouseRaycastSystem {
                             if let Some((material, surface)) = current_block {
                                 let mesh = meshes.get(entity).unwrap(); // Get mesh of nearest block (easy way to get block, maybe can be better)
 
+                                let click_point = ray.at_distance(dist);
+                                let mut block_point = Point3::new(block.x, block.y, block.z);
+                                let hit_direction: Vector3<f32> = click_point - block_point;
+
+                                // index of largest absolute component
+                                let index = hit_direction.iamax();
+                                // one times sign (+/-) of largest abs component
+                                let direction = hit_direction[index].signum();
+                                // placed block destination is 1 in corresponding direction
+                                block_point[index] += direction;
+
+                                let mut transform = Transform::default();
+                                transform.append_translation_xyz(
+                                    block_point.x,
+                                    block_point.y,
+                                    block_point.z,
+                                );
+
                                 entities
                                     .build_entity()
                                     .with(
                                         Block::new(
-                                            block.x,
-                                            block.y + 1.0,
-                                            block.z,
+                                            block_point.x,
+                                            block_point.y,
+                                            block_point.z,
                                             surface.clone(),
                                         ),
                                         &mut blocks,

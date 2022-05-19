@@ -23,6 +23,9 @@ pub use player::*;
 mod block_changing;
 pub use block_changing::*;
 
+mod block_ui;
+pub use block_ui::*;
+
 pub struct InGame;
 
 impl SimpleState for InGame {
@@ -185,4 +188,6 @@ pub fn initialize_ui(world: &mut World) {
         .with(UiTransform::new("cross".to_string(), Anchor::Middle, Anchor::Middle, 0.0, 0.0, 0.0, 40.0, 40.0))
         .with(UiImage::Texture(material))
         .build();
+
+    initialize_block_ui(world);
 }

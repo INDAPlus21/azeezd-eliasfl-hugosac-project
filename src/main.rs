@@ -51,6 +51,7 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(input_bundle)?
         .with_bundle(game::movement::MovementBundle)?
         .with_bundle(UiBundle::<StringBindings>::new())?
+        .with(game::CurrentBlockUiSystem, "BlockUiSystem", &[])
         .with_system_desc(game::MouseRaycastSystemDesc, "mouse_raycast", &[]);
 
     let mut game = Application::new(assets, game::InGame, game_data)?;

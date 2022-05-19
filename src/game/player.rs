@@ -6,6 +6,8 @@ use amethyst::{
     window::ScreenDimensions, assets::Handle,
 };
 
+use super::block::BlockSurface;
+
 pub const HEIGHT: f32 = 2.0; // From eyes to feet
 pub const HEAD_HEIGHT: f32 = 0.2; // From eyes to top of head
 pub const PLAYER_SIZE_FROM_CENTER: f32 = 0.4;
@@ -14,7 +16,7 @@ pub struct Player {
     pub y_velocity: f32,
     pub can_jump: bool,
     pub vert_rotation: f32,
-    pub current_block: Option<Handle<Material>> // Saves material of middle clicked block
+    pub current_block: Option<(Handle<Material>, BlockSurface)> // Saves material of middle clicked block
 }
 
 impl Player {

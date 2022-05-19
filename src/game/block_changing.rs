@@ -15,7 +15,7 @@ use amethyst::{
     winit::MouseButton,
 };
 
-use super::{Block, BlockSurface, Player, BLOCK_SIZE_FROM_CENTER};
+use super::{Block, Player, BLOCK_SIZE_FROM_CENTER};
 
 /// How low the player can reach to break and replace blocks
 pub const PLAYER_REACH: f32 = 5.0;
@@ -150,9 +150,9 @@ impl<'s> System<'s> for MouseRaycastSystem {
 
                     // If middle mouse clicked (store block material)
                     if let MouseButton::Middle = button {
-                        if let Some((_, _, entity)) = nearest_block {
+                        if let Some((block, _, entity)) = nearest_block {
                             for player in (&mut players).join() {
-                                player.current_block = Some(materials.get(entity).unwrap().clone());
+                                player.current_block = Some((materials.get(entity).unwrap().clone(), block.surface));
                             }
                         }
                     }
@@ -164,15 +164,11 @@ impl<'s> System<'s> for MouseRaycastSystem {
                             let mut transform = Transform::default();
                             transform.append_translation_xyz(block.x, block.y + 1.0, block.z);
 
-                            // let mesh = world.exec(|loader: AssetLoaderSystemData<'_, Mesh>| {
-                            //     loader.load("mesh/cube.obj", ObjFormat, ())
-                            // });
-
                             // Possible example for entity mesh: https://github.dev/amethyst/amethyst/blob/v0.15.3/amethyst_assets/examples/hl.rs
                             // Another resource: https://community.amethyst.rs/t/runtime-based-meshes/610/3
                             
-                            // Get material stored in player (if they have picked one using middle click)
-                            let material = {
+                            // Get material and surface stored in player (if they have picked one using middle click)
+                            let current_block = {
                                 let mut block = None;
                                 for player in (&mut players).join() {
                                     block = player.current_block.as_ref();
@@ -181,9 +177,9 @@ impl<'s> System<'s> for MouseRaycastSystem {
                             };
 
                             // If there is a material place the block
-                            if let Some(material) = material {
+                            if let Some((material, surface)) = current_block {
                                 let mesh = meshes.get(entity).unwrap(); // Get mesh of nearest block (easy way to get block, maybe can be better)
-                                
+
                                 entities
                                     .build_entity()
                                     .with(
@@ -191,7 +187,7 @@ impl<'s> System<'s> for MouseRaycastSystem {
                                             block.x,
                                             block.y + 1.0,
                                             block.z,
-                                            BlockSurface::Dirt,
+                                            surface.clone(),
                                         ),
                                         &mut blocks,
                                     )

@@ -1,5 +1,5 @@
 use amethyst::{
-    assets::{AssetStorage, Handle},
+    assets::{Handle},
     core::{
         math::{Point2, Vector2},
         Transform,
@@ -9,13 +9,13 @@ use amethyst::{
         Entities, Entity, Join, Read, ReadExpect, ReadStorage, System, SystemData, WriteStorage,
     },
     input::{InputEvent, StringBindings},
-    renderer::{ActiveCamera, Camera, Mesh},
+    renderer::{ActiveCamera, Camera, Material, Mesh},
     shrev::{EventChannel, ReaderId},
     window::ScreenDimensions,
     winit::MouseButton,
 };
 
-use super::{Block, BlockSurface, BLOCK_SIZE_FROM_CENTER};
+use super::{Block, BlockSurface, Player, BLOCK_SIZE_FROM_CENTER};
 
 /// How low the player can reach to break and replace blocks
 pub const PLAYER_REACH: f32 = 5.0;
@@ -37,9 +37,10 @@ impl<'s> System<'s> for MouseRaycastSystem {
     type SystemData = (
         Entities<'s>,
         WriteStorage<'s, Block>,
-        Read<'s, AssetStorage<Mesh>>,
-        ReadStorage<'s, Handle<Mesh>>,
+        WriteStorage<'s, Handle<Mesh>>,
+        WriteStorage<'s, Handle<Material>>,
         WriteStorage<'s, Transform>,
+        WriteStorage<'s, Player>,
         ReadStorage<'s, Camera>,
         Read<'s, ActiveCamera>,
         ReadExpect<'s, ScreenDimensions>,
@@ -51,9 +52,10 @@ impl<'s> System<'s> for MouseRaycastSystem {
         (
             entities,
             mut blocks,
-            _mesh_assets,
-            mut _meshes,
+            mut meshes,
+            mut materials,
             mut locals,
+            mut players,
             cameras,
             active_camera,
             screen_dimensions,
@@ -63,7 +65,7 @@ impl<'s> System<'s> for MouseRaycastSystem {
         for event in events.read(&mut self.event_reader) {
             // if left or right mouse button is pressed
             if let InputEvent::MouseButtonPressed(
-                button @ (MouseButton::Left | MouseButton::Right),
+                button @ (MouseButton::Left | MouseButton::Right | MouseButton::Middle),
             ) = *event
             {
                 // Get the active camera if it is spawned and ready
@@ -146,10 +148,19 @@ impl<'s> System<'s> for MouseRaycastSystem {
                         }
                     }
 
+                    // If middle mouse clicked (store block material)
+                    if let MouseButton::Middle = button {
+                        if let Some((_, _, entity)) = nearest_block {
+                            for player in (&mut players).join() {
+                                player.current_block = Some(materials.get(entity).unwrap().clone());
+                            }
+                        }
+                    }
+
                     // If right mouse is pressed (place block)
                     if let MouseButton::Right = button {
                         // place block on top of
-                        if let Some((block, _dist, _)) = nearest_block {
+                        if let Some((block, _dist, entity)) = nearest_block {
                             let mut transform = Transform::default();
                             transform.append_translation_xyz(block.x, block.y + 1.0, block.z);
 
@@ -159,17 +170,36 @@ impl<'s> System<'s> for MouseRaycastSystem {
 
                             // Possible example for entity mesh: https://github.dev/amethyst/amethyst/blob/v0.15.3/amethyst_assets/examples/hl.rs
                             // Another resource: https://community.amethyst.rs/t/runtime-based-meshes/610/3
+                            
+                            // Get material stored in player (if they have picked one using middle click)
+                            let material = {
+                                let mut block = None;
+                                for player in (&mut players).join() {
+                                    block = player.current_block.as_ref();
+                                }
+                                block
+                            };
 
-                            entities
-                                .build_entity()
-                                .with(
-                                    Block::new(block.x, block.y + 1.0, block.z, BlockSurface::Dirt),
-                                    &mut blocks,
-                                )
-                                .with(transform, &mut locals)
-                                // .with(mesh.clone())
-                                // .with(material.clone())
-                                .build();
+                            // If there is a material place the block
+                            if let Some(material) = material {
+                                let mesh = meshes.get(entity).unwrap(); // Get mesh of nearest block (easy way to get block, maybe can be better)
+                                
+                                entities
+                                    .build_entity()
+                                    .with(
+                                        Block::new(
+                                            block.x,
+                                            block.y + 1.0,
+                                            block.z,
+                                            BlockSurface::Dirt,
+                                        ),
+                                        &mut blocks,
+                                    )
+                                    .with(transform, &mut locals)
+                                    .with(mesh.clone(), &mut meshes)
+                                    .with(material.clone(), &mut materials)
+                                    .build();
+                            }
                         }
                     }
                 }

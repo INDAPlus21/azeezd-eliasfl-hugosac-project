@@ -4,11 +4,11 @@ mod game;
 use amethyst::{
     controls::{CursorHideSystemDesc, FreeRotationSystemDesc, MouseFocusUpdateSystemDesc},
     core::transform::TransformBundle,
-    input::{InputBundle, StringBindings},
+    input::{InputBundle, StringBindings, InputHandler},
     prelude::*,
     renderer::{bundle::RenderingBundle, types::DefaultBackend, RenderFlat3D, RenderToWindow},
     start_logger,
-    utils::application_root_dir,
+    utils::application_root_dir, ui::{RenderUi, UiBundle},
 };
 
 fn main() -> amethyst::Result<()> {
@@ -44,12 +44,15 @@ fn main() -> amethyst::Result<()> {
                 .with_plugin(
                     RenderToWindow::from_config_path(disp)?.with_clear([0.2, 0.5, 1.0, 1.0]),
                 )
-                .with_plugin(RenderFlat3D::default()),
+                .with_plugin(RenderFlat3D::default())
+                .with_plugin(RenderUi::default()),
         )?
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(game::movement::MovementBundle)?
+        .with_bundle(UiBundle::<StringBindings>::new())?
         .with(game::MouseRaycastSystem, "mouse_raycast", &[]);
+        
 
     let mut game = Application::new(assets, game::InGame, game_data)?;
     game.run();

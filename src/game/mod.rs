@@ -5,9 +5,9 @@ use amethyst::{
     input::{is_key_down, VirtualKeyCode},
     prelude::*,
     renderer::light::{Light, PointLight},
-    renderer::palette::rgb::Rgb,
+    renderer::{palette::rgb::Rgb, Texture, ImageFormat},
     window::ScreenDimensions,
-    SimpleState,
+    SimpleState, ui::{Anchor, UiTransform, UiText, UiImage}, assets::AssetLoaderSystemData,
 };
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
@@ -101,6 +101,8 @@ impl SimpleState for InGame {
 
             blocks
         });
+
+        initialize_ui(world);
     }
 
     fn handle_event(
@@ -133,5 +135,15 @@ fn init_light(world: &mut World) {
             smoothness: 1.0,
         }))
         .with(transform)
+        .build();
+}
+
+pub fn initialize_ui(world: &mut World) {
+    let material = world.exec(|loader: AssetLoaderSystemData<'_, Texture>| {
+        loader.load(format!("texture/crosshair.png"), ImageFormat::default(), ())
+    });
+    world.create_entity()
+        .with(UiTransform::new("cross".to_string(), Anchor::Middle, Anchor::Middle, 0.0, 0.0, 0.0, 40.0, 40.0))
+        .with(UiImage::Texture(material))
         .build();
 }

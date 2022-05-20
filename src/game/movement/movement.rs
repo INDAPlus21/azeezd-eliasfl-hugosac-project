@@ -88,14 +88,19 @@ impl<'s> System<'s> for MovementSystem {
                     delta[2] = 0.0
                 }
                 if collision.y_collision {
-                    if delta[1] <= 0. { // Colliding from top
+                    if delta[1] <= 0. {
+                        // Colliding from top
                         player.can_jump = true;
                         delta[1] = 0.0;
                         v_new = 0.0;
-                    } else { // Colliding from bottom
+                    } else {
+                        // Colliding from bottom
                         delta[1] -= delta[1];
                         v_new = 0.0;
                     }
+                }
+                if collision.x_collision && collision.z_collision {
+                    delta[1] = 1.5
                 }
             }
 

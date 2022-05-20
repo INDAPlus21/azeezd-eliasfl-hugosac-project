@@ -1,13 +1,15 @@
 extern crate amethyst;
 use amethyst::{
+    assets::AssetLoaderSystemData,
     controls::HideCursor,
     core::Transform,
     input::{is_key_down, VirtualKeyCode},
     prelude::*,
     renderer::light::{Light, PointLight},
-    renderer::{palette::rgb::Rgb, Texture, ImageFormat},
+    renderer::{palette::rgb::Rgb, ImageFormat, Texture},
+    ui::{Anchor, UiImage, UiTransform},
     window::ScreenDimensions,
-    SimpleState, ui::{Anchor, UiTransform, UiImage}, assets::AssetLoaderSystemData,
+    SimpleState,
 };
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
@@ -39,15 +41,15 @@ impl SimpleState for InGame {
         initialize_blocks(world, &{
             let mut blocks: Vec<Block> = Vec::with_capacity(1_000_000);
             let perlin = Perlin::new();
-            let map_size = 128.;
-            let chunk_size = 256;
+            let map_size = 64.;
+            let chunk_size = 128;
             let min_height = -10;
             let max_height = 15.0;
 
             let mut rng = rand::thread_rng();
 
             // Random frequency in the range [7, 12)
-            let freq = rng.gen::<f64>() * 5.0 + 7.0;
+            let freq = rng.gen::<f64>() * 5.0 + 3.0;
 
             // Iterate through x and z values of the map
             for x in -(chunk_size / 2)..(chunk_size / 2) {
@@ -184,8 +186,18 @@ pub fn initialize_ui(world: &mut World) {
     let material = world.exec(|loader: AssetLoaderSystemData<'_, Texture>| {
         loader.load(format!("texture/crosshair.png"), ImageFormat::default(), ())
     });
-    world.create_entity()
-        .with(UiTransform::new("cross".to_string(), Anchor::Middle, Anchor::Middle, 0.0, 0.0, 0.0, 40.0, 40.0))
+    world
+        .create_entity()
+        .with(UiTransform::new(
+            "cross".to_string(),
+            Anchor::Middle,
+            Anchor::Middle,
+            0.0,
+            0.0,
+            0.0,
+            40.0,
+            40.0,
+        ))
         .with(UiImage::Texture(material))
         .build();
 

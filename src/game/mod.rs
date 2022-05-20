@@ -5,9 +5,9 @@ use amethyst::{
     input::{is_key_down, VirtualKeyCode},
     prelude::*,
     renderer::light::{Light, PointLight},
-    renderer::palette::rgb::Rgb,
+    renderer::{palette::rgb::Rgb, Texture, ImageFormat},
     window::ScreenDimensions,
-    SimpleState,
+    SimpleState, ui::{Anchor, UiTransform, UiImage}, assets::AssetLoaderSystemData,
 };
 use noise::{NoiseFn, Perlin};
 use rand::prelude::*;
@@ -22,6 +22,9 @@ pub use player::*;
 
 mod block_changing;
 pub use block_changing::*;
+
+mod textual_ui;
+pub use textual_ui::*;
 
 pub struct InGame;
 
@@ -38,7 +41,7 @@ impl SimpleState for InGame {
             let perlin = Perlin::new();
             let map_size = 128.;
             let chunk_size = 256;
-            let min_height = -15;
+            let min_height = -10;
             let max_height = 15.0;
 
             let mut rng = rand::thread_rng();
@@ -51,29 +54,48 @@ impl SimpleState for InGame {
                 for z in -(chunk_size / 2)..(chunk_size / 2) {
                     let nx = (x as f32 / map_size - 1.0) as f64;
                     let nz = (z as f32 / map_size - 1.0) as f64;
-                    
+
                     // 3 octaves of Perlin noise
-                    let y = (
-                        max_height * (
-                            perlin.get([nx, nz])
+                    let y = (max_height
+                        * (perlin.get([nx, nz])
                             + 0.5 * perlin.get([freq * nx, freq * nz])
-                            + 0.25 * perlin.get([2.0 * freq * nx, 2.0 * freq * nz])
-                        )/ (1.0 + 0.5 + 0.25)
-                    ).round();
+                            + 0.25 * perlin.get([2.0 * freq * nx, 2.0 * freq * nz]))
+                        / (1.0 + 0.5 + 0.25))
+                        .round();
 
                     // Add top layer block
                     if y > 6.0 {
                         blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::Snow));
                     } else if y > -8.0 {
-                        blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::Grass));
+                        blocks.push(Block::new(
+                            x as f32,
+                            y as f32,
+                            z as f32,
+                            BlockSurface::Grass,
+                        ));
                     } else if y > -10.0 {
-                        blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::Gravel));
+                        blocks.push(Block::new(
+                            x as f32,
+                            y as f32,
+                            z as f32,
+                            BlockSurface::Gravel,
+                        ));
                     } else {
                         // 50 % change of each type of stone
                         if rand::random() {
-                            blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::StoneRough));
+                            blocks.push(Block::new(
+                                x as f32,
+                                y as f32,
+                                z as f32,
+                                BlockSurface::StoneRough,
+                            ));
                         } else {
-                            blocks.push(Block::new(x as f32, y as f32, z as f32, BlockSurface::StoneSmooth));
+                            blocks.push(Block::new(
+                                x as f32,
+                                y as f32,
+                                z as f32,
+                                BlockSurface::StoneSmooth,
+                            ));
                         }
                     }
 
@@ -81,15 +103,35 @@ impl SimpleState for InGame {
                     // The type of block that is added depends on the height.
                     for i in min_height..y as isize {
                         if i > -5 {
-                            blocks.push(Block::new(x as f32, i as f32, z as f32, BlockSurface::Dirt));
+                            blocks.push(Block::new(
+                                x as f32,
+                                i as f32,
+                                z as f32,
+                                BlockSurface::Dirt,
+                            ));
                         } else if i > -8 {
-                            blocks.push(Block::new(x as f32, i as f32, z as f32, BlockSurface::Gravel));
+                            blocks.push(Block::new(
+                                x as f32,
+                                i as f32,
+                                z as f32,
+                                BlockSurface::Gravel,
+                            ));
                         } else {
                             // 50 % change of each type of stone
                             if rand::random() {
-                                blocks.push(Block::new(x as f32, i as f32, z as f32, BlockSurface::StoneRough));
+                                blocks.push(Block::new(
+                                    x as f32,
+                                    i as f32,
+                                    z as f32,
+                                    BlockSurface::StoneRough,
+                                ));
                             } else {
-                                blocks.push(Block::new(x as f32, i as f32, z as f32, BlockSurface::StoneSmooth));
+                                blocks.push(Block::new(
+                                    x as f32,
+                                    i as f32,
+                                    z as f32,
+                                    BlockSurface::StoneSmooth,
+                                ));
                             }
                         }
                     }
@@ -101,6 +143,8 @@ impl SimpleState for InGame {
 
             blocks
         });
+
+        initialize_ui(world);
     }
 
     fn handle_event(
@@ -134,4 +178,16 @@ fn init_light(world: &mut World) {
         }))
         .with(transform)
         .build();
+}
+
+pub fn initialize_ui(world: &mut World) {
+    let material = world.exec(|loader: AssetLoaderSystemData<'_, Texture>| {
+        loader.load(format!("texture/crosshair.png"), ImageFormat::default(), ())
+    });
+    world.create_entity()
+        .with(UiTransform::new("cross".to_string(), Anchor::Middle, Anchor::Middle, 0.0, 0.0, 0.0, 40.0, 40.0))
+        .with(UiImage::Texture(material))
+        .build();
+
+    initialize_textual_ui(world);
 }
